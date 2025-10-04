@@ -46,5 +46,6 @@
     "signup" : "Signup",
     "name" : "Name" ,
     "re_password" : "Re Password",
-    "register" : "Register"
+    "register" : "Register",
+    "event_added_successfully" : "Event added successfully"
 }

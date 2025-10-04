@@ -2,11 +2,16 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:evently_app/core/theming/assets_manager.dart';
 import 'package:evently_app/core/theming/colors_manager.dart';
 import 'package:evently_app/core/theming/text_styles.dart';
+import 'package:evently_app/core/utils/toast_utils.dart';
 import 'package:evently_app/core/widgets/custom_elevated_buttom.dart';
 import 'package:evently_app/core/widgets/custom_text_form_field.dart';
 import 'package:evently_app/core/widgets/event_date_or_time.dart';
 import 'package:evently_app/feature/home/taps/home_tab/widgets/events_tabs_item.dart';
+import 'package:evently_app/firebase_utils.dart';
+import 'package:evently_app/model/event.dart';
+import 'package:evently_app/providers/event_list_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class CreateEvent extends StatefulWidget {
   static const String routeName = '/create_event';
@@ -21,10 +26,17 @@ class _CreateEventState extends State<CreateEvent> {
   DateTime? selectedDate;
   TimeOfDay? selectedTime;
   String? formatTime;
+  String selectedEventName = '';
+  String selectedEventImage = '';
+  late EventListProvider eventListProvider;
+
   var formKey = GlobalKey<FormState>();
+  TextEditingController titleController = TextEditingController();
+  TextEditingController descriptionController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
+    eventListProvider = Provider.of<EventListProvider>(context);
     var width = MediaQuery.of(context).size.width;
     var height = MediaQuery.of(context).size.height;
     List<String> eventsName = [
@@ -51,11 +63,8 @@ class _CreateEventState extends State<CreateEvent> {
       AssetsManager.eatingImage,
     ];
 
-    String selectedImage = eventsImages[selectedIndex];
-    String selectedEventName = eventsName[selectedIndex];
-
-    TextEditingController titleController = TextEditingController();
-    TextEditingController descriptionController = TextEditingController();
+    selectedEventImage = eventsImages[selectedIndex];
+    selectedEventName = eventsName[selectedIndex];
 
     return Scaffold(
       appBar: AppBar(
@@ -221,7 +230,26 @@ class _CreateEventState extends State<CreateEvent> {
 
   void addEvent() {
     if (formKey.currentState?.validate() == true) {
-      /// todo: add event to DB;
+      Event event = Event(
+        image: selectedEventImage,
+        title: titleController.text,
+        description: descriptionController.text,
+        eventName: selectedEventName,
+        dateTime: selectedDate!,
+        time: formatTime!,
+      );
+      FirebaseUtils.addEventToFirestore(event).timeout(
+        Duration(milliseconds: 500),
+        onTimeout: () {
+          ToastUtils.toastMsg(
+            backgroundColor: ColorsManager.primaryLight,
+            textColor: ColorsManager.whiteColor,
+            message: tr('event_added_successfully'),
+          );
+          eventListProvider.getAllEvents();
+          Navigator.pop(context);
+        },
+      );
     }
   }
 

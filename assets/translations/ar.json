@@ -46,7 +46,8 @@
     "signup" : "تسجيل" , 
     "name" : "الاسم" ,
     "re_password" : "إعادة كلمة المرور",
-    "egister" : "سجل"
+    "egister" : "سجل",
+    "event_added_successfully" : "تم إضافة الحدث بنجاح"
     
 
 }

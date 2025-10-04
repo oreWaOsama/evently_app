@@ -3,13 +3,17 @@ import 'package:evently_app/core/theming/colors_manager.dart';
 import 'package:evently_app/core/theming/text_styles.dart';
 import 'package:evently_app/core/widgets/custom_text_form_field.dart';
 import 'package:evently_app/feature/home/taps/home_tab/widgets/event_card.dart';
+import 'package:evently_app/model/event.dart';
 import 'package:flutter/material.dart';
 
 class FaviorteTab extends StatelessWidget {
+
   const FaviorteTab({super.key});
+
 
   @override
   Widget build(BuildContext context) {
+    List<Event> eventsList = [];
     var height = MediaQuery.of(context).size.height;
     return Scaffold(
       body: SafeArea(
@@ -31,10 +35,10 @@ class FaviorteTab extends StatelessWidget {
             Expanded(
               child: ListView.separated(
                 itemBuilder: (context, index) {
-                  return EventCard();
+                  return EventCard(event: eventsList[index]);
                 },
                 separatorBuilder: (context, index) => SizedBox(height: 8),
-                itemCount: 8,
+                itemCount: eventsList.length,
               ),
             ),
           ],

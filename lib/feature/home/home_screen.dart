@@ -39,8 +39,9 @@ class _HomeScreenState extends State<HomeScreen> {
           padding: EdgeInsets.zero,
           shape: const CircularNotchedRectangle(),
           color: Theme.of(context).primaryColor,
-          notchMargin: 8,
+          notchMargin: 4,
           child: BottomNavigationBar(
+            type: BottomNavigationBarType.fixed,
             currentIndex: selectedIndex,
             onTap: (index) {
               selectedIndex = index;

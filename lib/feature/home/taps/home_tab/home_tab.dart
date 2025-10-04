@@ -4,7 +4,10 @@ import 'package:evently_app/core/theming/colors_manager.dart';
 import 'package:evently_app/core/theming/text_styles.dart';
 import 'package:evently_app/feature/home/taps/home_tab/widgets/event_card.dart';
 import 'package:evently_app/feature/home/taps/home_tab/widgets/events_tabs_item.dart';
+
+import 'package:evently_app/providers/event_list_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class HomeTab extends StatefulWidget {
   const HomeTab({super.key});
@@ -31,6 +34,10 @@ class _HomeTabState extends State<HomeTab> {
 
   @override
   Widget build(BuildContext context) {
+    var eventListProvider = Provider.of<EventListProvider>(context);
+    if (eventListProvider.eventsList.isEmpty) {
+      eventListProvider.getAllEvents();
+    }
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).primaryColor,
@@ -132,10 +139,10 @@ class _HomeTabState extends State<HomeTab> {
           Expanded(
             child: ListView.separated(
               itemBuilder: (context, index) {
-                return EventCard();
+                return EventCard(event: eventListProvider.eventsList[index]);
               },
               separatorBuilder: (context, index) => SizedBox(height: 8),
-              itemCount: 8,
+              itemCount: eventListProvider.eventsList.length,
             ),
           ),
         ],
