@@ -30,7 +30,9 @@ class LoginScreen extends StatelessWidget {
                 prefixIcon: Image.asset(AssetsManager.iconEmail),
                 hintText: tr('email'),
                 controller: emailController,
-                validator: (text) {},
+                validator: (text) {
+                  return null;
+                },
               ),
               SizedBox(height: size.height * 0.02),
               CustomTextFormField(
@@ -38,7 +40,9 @@ class LoginScreen extends StatelessWidget {
                 suffixIcon: Image.asset(AssetsManager.iconShowPassword),
                 hintText: tr('password'),
                 controller: passwordController,
-                validator: (text) {},
+                validator: (text) {
+                  return null;
+                },
               ),
               SizedBox(height: size.height * 0.01),
               Row(

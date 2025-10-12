@@ -40,8 +40,8 @@ class CustomTextFormField extends StatelessWidget {
       decoration: InputDecoration(
         labelText: labelText,
         labelStyle: labelStyle ?? TextStyles.medium16Grey,
-        prefixIcon: prefixIcon ?? null,
-        suffixIcon: suffixIcon ?? null,
+        prefixIcon: prefixIcon,
+        suffixIcon: suffixIcon,
         hintText: hintText,
 
         hintStyle: hintStyle ?? TextStyles.medium16Grey,

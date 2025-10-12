@@ -45,14 +45,18 @@ class _SignupScreenState extends State<SignupScreen> {
               prefixIcon: Image.asset(AssetsManager.iconName),
               hintText: tr('name'),
               controller: emailController,
-              validator: (text) {},
+              validator: (text) {
+                return null;
+              },
             ),
             SizedBox(height: size.height * 0.02),
             CustomTextFormField(
               prefixIcon: Image.asset(AssetsManager.iconEmail),
               hintText: tr('email'),
               controller: emailController,
-              validator: (text) {},
+              validator: (text) {
+                return null;
+              },
             ),
             SizedBox(height: size.height * 0.02),
             CustomTextFormField(
@@ -60,7 +64,9 @@ class _SignupScreenState extends State<SignupScreen> {
               suffixIcon: Image.asset(AssetsManager.iconShowPassword),
               hintText: tr('password'),
               controller: passwordController,
-              validator: (text) {},
+              validator: (text) {
+                return null;
+              },
             ),
             SizedBox(height: size.height * 0.02),
             CustomTextFormField(
@@ -68,7 +74,9 @@ class _SignupScreenState extends State<SignupScreen> {
               suffixIcon: Image.asset(AssetsManager.iconShowPassword),
               hintText: tr('re_password'),
               controller: passwordController,
-              validator: (text) {},
+              validator: (text) {
+                return null;
+              },
             ),
 
             SizedBox(height: size.height * 0.02),
