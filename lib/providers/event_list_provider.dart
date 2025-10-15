@@ -26,6 +26,10 @@ class EventListProvider extends ChangeNotifier {
         await FirebaseUtils.getEventsCollection().get();
     eventsList = querySnapshot.docs.map((doc) => doc.data()).toList();
     eventsFilteredList = eventsList;
+
+    eventsFilteredList.sort(
+      (event1, event2) => event1.dateTime.compareTo(event2.dateTime),
+    );
     notifyListeners();
   }
 
@@ -33,6 +37,9 @@ class EventListProvider extends ChangeNotifier {
     eventsFilteredList = eventsList.where((event) {
       return event.eventName == eventsName[selectedIndex];
     }).toList();
+    eventsFilteredList.sort(
+      (event1, event2) => event1.dateTime.compareTo(event2.dateTime),
+    );
     notifyListeners();
   }
 
