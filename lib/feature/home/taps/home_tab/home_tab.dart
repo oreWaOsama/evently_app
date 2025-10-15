@@ -4,7 +4,6 @@ import 'package:evently_app/core/theming/colors_manager.dart';
 import 'package:evently_app/core/theming/text_styles.dart';
 import 'package:evently_app/feature/home/taps/home_tab/widgets/event_card.dart';
 import 'package:evently_app/feature/home/taps/home_tab/widgets/events_tabs_item.dart';
-
 import 'package:evently_app/providers/event_list_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -17,21 +16,6 @@ class HomeTab extends StatefulWidget {
 }
 
 class _HomeTabState extends State<HomeTab> {
-  int selectedIndex = 0;
-
-  List<String> eventsName = [
-    tr('all'),
-    tr('sport'),
-    tr('birthday'),
-    tr('meeting'),
-    tr('gaming'),
-    tr('workshop'),
-    tr('book_club'),
-    tr('exhibition'),
-    tr('holiday'),
-    tr('eating'),
-  ];
-
   @override
   Widget build(BuildContext context) {
     var eventListProvider = Provider.of<EventListProvider>(context);
@@ -98,11 +82,10 @@ class _HomeTabState extends State<HomeTab> {
                 SizedBox(height: 8),
                 Expanded(
                   child: DefaultTabController(
-                    length: eventsName.length,
+                    length: eventListProvider.eventsName.length,
                     child: TabBar(
                       onTap: (index) {
-                        selectedIndex = index;
-                        setState(() {});
+                        eventListProvider.changeIndex(index);
                       },
                       labelColor: ColorsManager.whiteColor,
                       labelPadding: EdgeInsets.symmetric(horizontal: 8),
@@ -110,7 +93,7 @@ class _HomeTabState extends State<HomeTab> {
                       dividerColor: ColorsManager.transparentColor,
                       tabAlignment: TabAlignment.start,
                       isScrollable: true,
-                      tabs: eventsName.map((eventName) {
+                      tabs: eventListProvider.eventsName.map((eventName) {
                         return Tab(
                           child: EventsTabsItem(
                             selectedTextStyle: Theme.of(
@@ -123,7 +106,10 @@ class _HomeTabState extends State<HomeTab> {
                             ).focusColor,
                             eventName: eventName,
                             isSelected:
-                                selectedIndex == eventsName.indexOf(eventName)
+                                eventListProvider.selectedIndex ==
+                                    eventListProvider.eventsName.indexOf(
+                                      eventName,
+                                    )
                                 ? true
                                 : false, // Example condition
                           ),
@@ -137,13 +123,22 @@ class _HomeTabState extends State<HomeTab> {
           ),
           SizedBox(height: 16),
           Expanded(
-            child: ListView.separated(
-              itemBuilder: (context, index) {
-                return EventCard(event: eventListProvider.eventsList[index]);
-              },
-              separatorBuilder: (context, index) => SizedBox(height: 8),
-              itemCount: eventListProvider.eventsList.length,
-            ),
+            child: eventListProvider.eventsFilteredList.isEmpty
+                ? Center(
+                    child: Text(
+                      tr('no_events'),
+                      style: TextStyles.bold20Primary,
+                    ),
+                  )
+                : ListView.separated(
+                    itemBuilder: (context, index) {
+                      return EventCard(
+                        event: eventListProvider.eventsFilteredList[index],
+                      );
+                    },
+                    separatorBuilder: (context, index) => SizedBox(height: 8),
+                    itemCount: eventListProvider.eventsFilteredList.length,
+                  ),
           ),
         ],
       ),
