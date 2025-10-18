@@ -48,5 +48,7 @@
     "re_password" : "Re Password",
     "register" : "Register",
     "event_added_successfully" : "Event added successfully",
-    "no_events" : "No Events"
+    "no_events" : "No Events",
+    "favorite_updated_successfully" : "Favorite updated successfully",
+    "no_favorite_events" : "No Favorite Events"
 }

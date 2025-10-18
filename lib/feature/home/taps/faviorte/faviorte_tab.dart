@@ -3,18 +3,21 @@ import 'package:evently_app/core/theming/colors_manager.dart';
 import 'package:evently_app/core/theming/text_styles.dart';
 import 'package:evently_app/core/widgets/custom_text_form_field.dart';
 import 'package:evently_app/feature/home/taps/home_tab/widgets/event_card.dart';
-import 'package:evently_app/model/event.dart';
+
+import 'package:evently_app/providers/event_list_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class FaviorteTab extends StatelessWidget {
-
   const FaviorteTab({super.key});
-
 
   @override
   Widget build(BuildContext context) {
-    List<Event> eventsList = [];
     var height = MediaQuery.of(context).size.height;
+    var eventListProvider = Provider.of<EventListProvider>(context);
+    if (eventListProvider.favoriteEventsFilteredList.isEmpty) {
+      eventListProvider.getAllFavoriteEvents();
+    }
     return Scaffold(
       body: SafeArea(
         child: Column(
@@ -33,13 +36,24 @@ class FaviorteTab extends StatelessWidget {
             ),
             SizedBox(height: height * 0.02),
             Expanded(
-              child: ListView.separated(
-                itemBuilder: (context, index) {
-                  return EventCard(event: eventsList[index]);
-                },
-                separatorBuilder: (context, index) => SizedBox(height: 8),
-                itemCount: eventsList.length,
-              ),
+              child: eventListProvider.favoriteEventsFilteredList.isEmpty
+                  ? Center(
+                      child: Text(
+                        tr('no_favorite_events'),
+                        style: TextStyles.bold20Primary,
+                      ),
+                    )
+                  : ListView.separated(
+                      itemBuilder: (context, index) {
+                        return EventCard(
+                          event: eventListProvider
+                              .favoriteEventsFilteredList[index],
+                        );
+                      },
+                      separatorBuilder: (context, index) => SizedBox(height: 8),
+                      itemCount:
+                          eventListProvider.favoriteEventsFilteredList.length,
+                    ),
             ),
           ],
         ),
