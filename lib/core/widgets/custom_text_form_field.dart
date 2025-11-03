@@ -15,6 +15,9 @@ class CustomTextFormField extends StatelessWidget {
   final int? maxLines;
   final TextEditingController? controller;
   final MyValidator? validator;
+  final TextInputType keyBoardInputType;
+  final bool? obscureText;
+  final String? obscuringCharacter;
 
   const CustomTextFormField({
     super.key,
@@ -28,11 +31,17 @@ class CustomTextFormField extends StatelessWidget {
     this.labelText,
     this.labelStyle,
     this.maxLines,
+    this.obscureText,
+    this.obscuringCharacter,
+    this.keyBoardInputType = TextInputType.text,
   });
 
   @override
   Widget build(BuildContext context) {
     return TextFormField(
+      keyboardType: keyBoardInputType,
+      obscureText: obscureText ?? false,
+      obscuringCharacter: obscuringCharacter ?? '*',
       maxLines: maxLines ?? 1,
       controller: controller,
       validator: validator,

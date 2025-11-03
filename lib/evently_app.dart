@@ -25,7 +25,7 @@ class EventlyApp extends StatelessWidget {
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: themeProvider.currentTheme,
-      initialRoute: HomeScreen.routeName,
+      initialRoute: LoginScreen.routeName,
       routes: {
         StartScreen.routeName: (context) => const StartScreen(),
         HomeScreen.routeName: (context) => const HomeScreen(),
