@@ -6,12 +6,15 @@ import 'package:evently_app/core/utils/dialog_utils.dart';
 import 'package:evently_app/core/widgets/custom_elevated_buttom.dart';
 import 'package:evently_app/core/widgets/custom_text_form_field.dart';
 import 'package:evently_app/feature/home/home_screen.dart';
+import 'package:evently_app/firebase_utils.dart';
+import 'package:evently_app/model/my_user.dart';
+import 'package:evently_app/providers/user_provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class SignupScreen extends StatefulWidget {
   static const String routeName = 'signup_screen';
-
   const SignupScreen({super.key});
 
   @override
@@ -28,7 +31,9 @@ class _SignupScreenState extends State<SignupScreen> {
   @override
   void dispose() {
     emailController.dispose();
+    nameController.dispose();
     passwordController.dispose();
+    rePasswordController.dispose();
     super.dispose();
   }
 
@@ -48,7 +53,6 @@ class _SignupScreenState extends State<SignupScreen> {
             child: Column(
               children: [
                 Image.asset(AssetsManager.logo),
-
                 SizedBox(height: size.height * 0.05),
                 CustomTextFormField(
                   prefixIcon: Image.asset(AssetsManager.iconName),
@@ -81,7 +85,7 @@ class _SignupScreenState extends State<SignupScreen> {
                 SizedBox(height: size.height * 0.02),
                 CustomTextFormField(
                   obscureText: true,
-                  keyBoardInputType: TextInputType.number,
+                  keyBoardInputType: TextInputType.text,
                   prefixIcon: Image.asset(AssetsManager.iconPassword),
                   suffixIcon: Image.asset(AssetsManager.iconShowPassword),
                   hintText: tr('password'),
@@ -98,7 +102,7 @@ class _SignupScreenState extends State<SignupScreen> {
                 SizedBox(height: size.height * 0.02),
                 CustomTextFormField(
                   obscureText: true,
-                  keyBoardInputType: TextInputType.number,
+                  keyBoardInputType: TextInputType.text,
                   prefixIcon: Image.asset(AssetsManager.iconPassword),
                   suffixIcon: Image.asset(AssetsManager.iconShowPassword),
                   hintText: tr('re_password'),
@@ -111,16 +115,12 @@ class _SignupScreenState extends State<SignupScreen> {
                     } else if (text != passwordController.text) {
                       return "re-password doesn't match password";
                     }
-
                     return null;
                   },
                 ),
-
                 SizedBox(height: size.height * 0.02),
                 CustomElevatedButtom(
-                  onPressed: () {
-                    signup();
-                  },
+                  onPressed: signup,
                   text: tr('create_account'),
                 ),
                 SizedBox(height: size.height * 0.02),
@@ -159,49 +159,39 @@ class _SignupScreenState extends State<SignupScreen> {
       try {
         final credential = await FirebaseAuth.instance
             .createUserWithEmailAndPassword(
-              email: emailController.text,
-              password: passwordController.text,
+              email: emailController.text.trim(),
+              password: passwordController.text.trim(),
             );
+
+        final uid = credential.user?.uid ?? '';
+        final myUser = MyUser(
+          id: uid,
+          name: nameController.text.trim(),
+          email: emailController.text.trim(),
+        );
+
+        await FirebaseUtils.addUserToFireStore(myUser);
+        var userProvider = Provider.of<UserProvider>(context, listen: false);
+        userProvider.updatUser(myUser);
+
         DialogUtils.hideLoading(context);
         DialogUtils.showMessage(
           context: context,
           message: 'Signup successfully..',
           title: 'Success',
           posActionName: 'Ok',
-          posAction: (){
-              Navigator.of(context).pushNamed(HomeScreen.routeName);
-          }
+          posAction: () {
+            Navigator.of(context).pushReplacementNamed(HomeScreen.routeName);
+          },
         );
-      } on FirebaseAuthException catch (e) {
-        if (e.code == 'weak-password') {
-          DialogUtils.hideLoading(context);
-          DialogUtils.showMessage(
-            context: context,
-            message: 'The password provided is too weak.',
-            title: 'Error',
-            posActionName: 'Ok',
-          );
-          print('The password provided is too weak.');
-        } else if (e.code == 'email-already-in-use') {
-          DialogUtils.hideLoading(context);
-          DialogUtils.showMessage(
-            context: context,
-            message: 'The account already exists for that email.',
-            title: 'Error',
-            posActionName: 'Ok',
-          );
-          print('The account already exists for that email.');
-        }
       } catch (e) {
         DialogUtils.hideLoading(context);
         DialogUtils.showMessage(
           context: context,
-          message: 'The account already exists for that email.',
+          message: 'Firestore error: $e',
           title: 'Error',
           posActionName: 'Ok',
         );
-        print(e.toString());
-        print(e);
       }
     }
   }

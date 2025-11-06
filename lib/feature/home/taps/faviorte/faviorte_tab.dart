@@ -5,6 +5,7 @@ import 'package:evently_app/core/widgets/custom_text_form_field.dart';
 import 'package:evently_app/feature/home/taps/home_tab/widgets/event_card.dart';
 
 import 'package:evently_app/providers/event_list_provider.dart';
+import 'package:evently_app/providers/user_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -15,8 +16,9 @@ class FaviorteTab extends StatelessWidget {
   Widget build(BuildContext context) {
     var height = MediaQuery.of(context).size.height;
     var eventListProvider = Provider.of<EventListProvider>(context);
+    var userProvider = Provider.of<UserProvider>(context);
     if (eventListProvider.favoriteEventsFilteredList.isEmpty) {
-      eventListProvider.getAllFavoriteEvents();
+      eventListProvider.getAllFavoriteEvents(userProvider.currentUser!.id);
     }
     return Scaffold(
       body: SafeArea(

@@ -4,6 +4,7 @@ import 'package:evently_app/core/theming/colors_manager.dart';
 import 'package:evently_app/core/theming/text_styles.dart';
 import 'package:evently_app/model/event.dart';
 import 'package:evently_app/providers/event_list_provider.dart';
+import 'package:evently_app/providers/user_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -15,6 +16,7 @@ class EventCard extends StatelessWidget {
   Widget build(BuildContext context) {
     var height = MediaQuery.of(context).size.height;
     var eventListProvider = Provider.of<EventListProvider>(context);
+     var userProvider = Provider.of<UserProvider>(context);
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       padding: const EdgeInsets.all(16),
@@ -69,7 +71,7 @@ class EventCard extends StatelessWidget {
                 ),
                 IconButton(
                   onPressed: () {
-                    eventListProvider.upDateFavoriteEvent(event);
+                    eventListProvider.upDateFavoriteEvent(event,userProvider.currentUser!.id);
                   },
                   icon: ImageIcon(
                     event.isFavorite == true

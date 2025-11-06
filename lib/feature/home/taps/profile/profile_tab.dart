@@ -3,10 +3,13 @@ import 'package:evently_app/core/theming/assets_manager.dart';
 import 'package:evently_app/core/theming/colors_manager.dart';
 import 'package:evently_app/core/theming/text_styles.dart';
 import 'package:evently_app/core/utils/local_keys.dart';
+import 'package:evently_app/feature/auth/login/login_screen.dart';
 import 'package:evently_app/feature/home/taps/profile/language_bottom_sheet.dart';
 import 'package:evently_app/feature/home/taps/profile/theme_bottom_sheet%20copy.dart';
 import 'package:evently_app/providers/language_provider.dart';
 import 'package:evently_app/providers/theme_provider.dart';
+import 'package:evently_app/providers/user_provider.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -24,6 +27,7 @@ class _ProfileTabState extends State<ProfileTab> {
     var height = MediaQuery.of(context).size.height;
     var languageProvider = Provider.of<LanguageProvider>(context);
     var themeProvider = Provider.of<ThemeProvider>(context);
+    var userProvider = Provider.of<UserProvider>(context);
     return Scaffold(
       appBar: AppBar(
         shape: RoundedRectangleBorder(
@@ -45,13 +49,13 @@ class _ProfileTabState extends State<ProfileTab> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    'Osama Gabr',
+                    userProvider.currentUser!.name,
                     style: TextStyles.bold24White,
                     overflow: TextOverflow.ellipsis,
                   ),
                   SizedBox(height: height * 0.01),
                   Text(
-                    'osamagabr204@gmail.com',
+                    userProvider.currentUser!.email,
                     style: TextStyles.bold16White,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -154,7 +158,10 @@ class _ProfileTabState extends State<ProfileTab> {
             Spacer(),
             ElevatedButton(
               onPressed: () {
-                Navigator.pushNamed(context, '/login');
+                // FirebaseAuth.instance.signOut();
+                Navigator.of(
+                  context,
+                ).pushReplacementNamed(LoginScreen.routeName);
               },
               style: ElevatedButton.styleFrom(
                 minimumSize: Size(width, height * 0.07),

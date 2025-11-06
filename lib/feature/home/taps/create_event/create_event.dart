@@ -10,6 +10,7 @@ import 'package:evently_app/feature/home/taps/home_tab/widgets/events_tabs_item.
 import 'package:evently_app/firebase_utils.dart';
 import 'package:evently_app/model/event.dart';
 import 'package:evently_app/providers/event_list_provider.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -22,24 +23,28 @@ class CreateEvent extends StatefulWidget {
 }
 
 class _CreateEventState extends State<CreateEvent> {
+  final formKey = GlobalKey<FormState>();
+  final titleController = TextEditingController();
+  final descriptionController = TextEditingController();
+
   int selectedIndex = 0;
   DateTime? selectedDate;
   TimeOfDay? selectedTime;
-  String? formatTime;
-  String selectedEventName = '';
-  String selectedEventImage = '';
-  late EventListProvider eventListProvider;
+  String? formattedTime;
 
-  var formKey = GlobalKey<FormState>();
-  TextEditingController titleController = TextEditingController();
-  TextEditingController descriptionController = TextEditingController();
+  @override
+  void dispose() {
+    titleController.dispose();
+    descriptionController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    eventListProvider = Provider.of<EventListProvider>(context);
-    var width = MediaQuery.of(context).size.width;
-    var height = MediaQuery.of(context).size.height;
-    List<String> eventsName = [
+    final width = MediaQuery.of(context).size.width;
+    final height = MediaQuery.of(context).size.height;
+
+    final eventsName = <String>[
       tr('sport'),
       tr('birthday'),
       tr('meeting'),
@@ -51,7 +56,7 @@ class _CreateEventState extends State<CreateEvent> {
       tr('eating'),
     ];
 
-    List<String> eventsImages = [
+    final eventsImages = <String>[
       AssetsManager.sportImage,
       AssetsManager.birthdayImage,
       AssetsManager.meetingImage,
@@ -63,14 +68,13 @@ class _CreateEventState extends State<CreateEvent> {
       AssetsManager.eatingImage,
     ];
 
-    selectedEventImage = eventsImages[selectedIndex];
-    selectedEventName = eventsName[selectedIndex];
+    final selectedEventName = eventsName[selectedIndex];
+    final selectedEventImage = eventsImages[selectedIndex];
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(tr('create_event'), style: TextStyles.medium20Primary),
-
         centerTitle: true,
+        title: Text(tr('create_event'), style: TextStyles.medium20Primary),
       ),
       body: Padding(
         padding: const EdgeInsets.all(8.0),
@@ -80,7 +84,7 @@ class _CreateEventState extends State<CreateEvent> {
             children: [
               ClipRRect(
                 borderRadius: BorderRadius.circular(16),
-                child: Image.asset(eventsImages[selectedIndex]),
+                child: Image.asset(selectedEventImage),
               ),
               SizedBox(height: height * 0.02),
               Form(
@@ -92,59 +96,58 @@ class _CreateEventState extends State<CreateEvent> {
                       height: height * 0.04,
                       child: ListView.separated(
                         scrollDirection: Axis.horizontal,
+                        itemCount: eventsName.length,
+                        separatorBuilder: (_, __) =>
+                            SizedBox(width: width * 0.02),
                         itemBuilder: (context, index) {
                           return InkWell(
-                            onTap: () {
-                              setState(() {
-                                selectedIndex = index;
-                              });
-                            },
+                            onTap: () => setState(() => selectedIndex = index),
                             child: EventsTabsItem(
+                              eventName: eventsName[index],
+                              isSelected: selectedIndex == index,
                               borderColor: ColorsManager.primaryLight,
+                              selectedBackgroundColor:
+                                  ColorsManager.primaryLight,
                               selectedTextStyle: TextStyles.medium16White,
                               unselectedTextStyle: Theme.of(
                                 context,
                               ).textTheme.headlineSmall!,
-                              selectedBackgroundColor:
-                                  ColorsManager.primaryLight,
-                              eventName: eventsName[index],
-                              isSelected: selectedIndex == index,
                             ),
                           );
                         },
-                        separatorBuilder: (context, index) =>
-                            SizedBox(width: width * 0.02),
-                        itemCount: eventsName.length,
                       ),
                     ),
                     SizedBox(height: height * 0.02),
+
                     Text(tr('title'), style: TextStyles.medium16Black),
                     SizedBox(height: height * 0.01),
                     CustomTextFormField(
+                      controller: titleController,
+                      hintText: tr('event_title'),
+                      prefixIcon: Image.asset(AssetsManager.iconEdit),
                       validator: (text) {
-                        if (text == null || text.isEmpty) {
+                        if (text == null || text.trim().isEmpty) {
                           return tr('please_enter_event_title');
                         }
                         return null;
                       },
-                      controller: titleController,
-                      hintText: tr('event_title'),
-                      prefixIcon: Image.asset(AssetsManager.iconEdit),
                     ),
+
                     SizedBox(height: height * 0.02),
                     Text(tr('description'), style: TextStyles.medium16Black),
                     SizedBox(height: height * 0.01),
                     CustomTextFormField(
+                      controller: descriptionController,
+                      hintText: tr('event_description'),
+                      maxLines: 4,
                       validator: (text) {
-                        if (text == null || text.isEmpty) {
+                        if (text == null || text.trim().isEmpty) {
                           return tr('please_enter_event_description');
                         }
                         return null;
                       },
-                      controller: descriptionController,
-                      hintText: tr('event_description'),
-                      maxLines: 4,
                     ),
+
                     SizedBox(height: height * 0.001),
                     EventDateOrTime(
                       iconDateOrTime: AssetsManager.iconDate,
@@ -152,7 +155,7 @@ class _CreateEventState extends State<CreateEvent> {
                       textButton: selectedDate == null
                           ? tr('choose_date')
                           : '${selectedDate!.day}/${selectedDate!.month}/${selectedDate!.year}',
-                      onPressed: chooseDate,
+                      onPressed: _chooseDate,
                     ),
                     SizedBox(height: height * 0.0001),
                     EventDateOrTime(
@@ -160,12 +163,14 @@ class _CreateEventState extends State<CreateEvent> {
                       eventDateorTime: tr('event_time'),
                       textButton: selectedTime == null
                           ? tr('choose_time')
-                          : selectedTime!.format(context),
-                      onPressed: chooseTime,
+                          : formattedTime ?? tr('choose_time'),
+                      onPressed: _chooseTime,
                     ),
+
                     SizedBox(height: height * 0.02),
                     Text(tr('location'), style: TextStyles.medium16Black),
                     SizedBox(height: height * 0.01),
+
                     Container(
                       width: width,
                       height: height * 0.06,
@@ -187,7 +192,7 @@ class _CreateEventState extends State<CreateEvent> {
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: IconButton(
-                              onPressed: () {},
+                              onPressed: () {}, 
                               icon: ImageIcon(
                                 AssetImage(AssetsManager.iconLocation),
                                 color: ColorsManager.whiteColor,
@@ -195,14 +200,13 @@ class _CreateEventState extends State<CreateEvent> {
                             ),
                           ),
                           SizedBox(width: width * 0.02),
-
                           Text(
                             tr('choose_location'),
                             style: TextStyles.medium16Primary,
                           ),
-                          Spacer(),
+                          const Spacer(),
                           IconButton(
-                            onPressed: () {},
+                            onPressed: () {}, 
                             icon: Icon(
                               Icons.arrow_forward_ios,
                               color: ColorsManager.primaryLight,
@@ -211,12 +215,15 @@ class _CreateEventState extends State<CreateEvent> {
                         ],
                       ),
                     ),
+
                     SizedBox(height: height * 0.01),
                     CustomElevatedButtom(
-                      onPressed: addEvent,
+                      onPressed: () => _addEvent(
+                        selectedEventImage: selectedEventImage,
+                        selectedEventName: selectedEventName,
+                      ),
                       text: tr('create_event'),
                     ),
-
                     SizedBox(height: height * 0.02),
                   ],
                 ),
@@ -228,49 +235,92 @@ class _CreateEventState extends State<CreateEvent> {
     );
   }
 
-  void addEvent() {
-    if (formKey.currentState?.validate() == true) {
-      Event event = Event(
-        image: selectedEventImage,
-        title: titleController.text,
-        description: descriptionController.text,
-        eventName: selectedEventName,
-        dateTime: selectedDate!,
-        time: formatTime!,
+  Future<void> _addEvent({
+    required String selectedEventImage,
+    required String selectedEventName,
+  }) async {
+    if (formKey.currentState?.validate() != true) return;
+
+    if (selectedDate == null) {
+      ToastUtils.toastMsg(
+        backgroundColor: ColorsManager.primaryLight,
+        textColor: ColorsManager.whiteColor,
+        message: tr('please_choose_date'),
       );
-      FirebaseUtils.addEventToFirestore(event).timeout(
-        Duration(milliseconds: 500),
-        onTimeout: () {
-          ToastUtils.toastMsg(
-            backgroundColor: ColorsManager.primaryLight,
-            textColor: ColorsManager.whiteColor,
-            message: tr('event_added_successfully'),
-          );
-          eventListProvider.getAllEvents();
-          Navigator.pop(context);
-        },
+      return;
+    }
+    if (selectedTime == null || formattedTime == null) {
+      ToastUtils.toastMsg(
+        backgroundColor: ColorsManager.primaryLight,
+        textColor: ColorsManager.whiteColor,
+        message: tr('please_choose_time'),
+      );
+      return;
+    }
+
+     
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null || uid.isEmpty) {
+      ToastUtils.toastMsg(
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+        message: 'User not signed in.',
+      );
+      return;
+    }
+
+    final event = Event(
+      image: selectedEventImage,
+      title: titleController.text.trim(),
+      description: descriptionController.text.trim(),
+      eventName: selectedEventName,
+      dateTime: selectedDate!,
+      time: formattedTime!,
+    );
+
+    try {
+      await FirebaseUtils.addEventToFirestore(event, uid);
+
+      ToastUtils.toastMsg(
+        backgroundColor: ColorsManager.primaryLight,
+        textColor: ColorsManager.whiteColor,
+        message: tr('event_added_successfully'),
+      );
+
+      context.read<EventListProvider>().getAllEvents(uid);
+      if (!mounted) return;
+      Navigator.pop(context);
+    } catch (e) {
+      ToastUtils.toastMsg(
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+        message: 'Firestore error: $e',
       );
     }
   }
 
-  void chooseDate() async {
-    var chooseDate = await showDatePicker(
+  Future<void> _chooseDate() async {
+    final picked = await showDatePicker(
       context: context,
       initialDate: DateTime.now(),
       firstDate: DateTime.now(),
-      lastDate: DateTime.now().add(Duration(days: 365)),
+      lastDate: DateTime.now().add(const Duration(days: 365)),
     );
-    selectedDate = chooseDate;
-    setState(() {});
+    if (picked != null) {
+      setState(() => selectedDate = picked);
+    }
   }
 
-  void chooseTime() async {
-    var chooseTime = await showTimePicker(
+  Future<void> _chooseTime() async {
+    final picked = await showTimePicker(
       context: context,
       initialTime: TimeOfDay.now(),
     );
-    selectedTime = chooseTime;
-    formatTime = selectedTime!.format(context);
-    setState(() {});
+    if (picked != null) {
+      setState(() {
+        selectedTime = picked;
+        formattedTime = picked.format(context);
+      });
+    }
   }
 }

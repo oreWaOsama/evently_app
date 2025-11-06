@@ -24,9 +24,9 @@ class EventListProvider extends ChangeNotifier {
     tr('eating'),
   ];
 
-  void getAllEvents() async {
+  void getAllEvents(String uId) async {
     QuerySnapshot<Event> querySnapshot =
-        await FirebaseUtils.getEventsCollection().get();
+        await FirebaseUtils.getEventsCollection(uId).get();
     eventsList = querySnapshot.docs.map((doc) => doc.data()).toList();
     eventsFilteredList = eventsList;
 
@@ -46,7 +46,7 @@ class EventListProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void changeIndex(int index) {
+  void changeIndex(int index, String id) {
     selectedIndex = index;
     if (index == 0) {
       eventsFilteredList = eventsList;
@@ -56,8 +56,8 @@ class EventListProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void upDateFavoriteEvent(Event event) async {
-    FirebaseUtils.getEventsCollection()
+  void upDateFavoriteEvent(Event event,String uId) async {
+    FirebaseUtils.getEventsCollection(uId)
         .doc(event.id)
         .update({'isFavorite': !event.isFavorite})
         .timeout(
@@ -69,13 +69,13 @@ class EventListProvider extends ChangeNotifier {
               message: tr('favorite_updated_successfully'),
             );
 
-            getAllFavoriteEvents();
+            getAllFavoriteEvents(uId);
           },
         );
   }
 
-  void getFilteredFavoriteEventsFromFireStore() async {
-    var querySnapshot = await FirebaseUtils.getEventsCollection()
+  void getFilteredFavoriteEventsFromFireStore(String uId) async {
+    var querySnapshot = await FirebaseUtils.getEventsCollection(uId)
         .where('eventName', isEqualTo: eventsName[selectedIndex])
         .orderBy('dateTime')
         .get();
@@ -83,8 +83,8 @@ class EventListProvider extends ChangeNotifier {
     eventsFilteredList = querySnapshot.docs.map((doc) => doc.data()).toList();
   }
 
-  void getAllFavoriteEvents() async {
-    var querySnapshot = await FirebaseUtils.getEventsCollection()
+  void getAllFavoriteEvents(String uId) async {
+    var querySnapshot = await FirebaseUtils.getEventsCollection(uId)
         .where('isFavorite', isEqualTo: true)
         .orderBy('dateTime')
         .get();

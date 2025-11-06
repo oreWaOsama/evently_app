@@ -7,8 +7,12 @@ import 'package:evently_app/core/widgets/custom_elevated_buttom.dart';
 import 'package:evently_app/core/widgets/custom_text_form_field.dart';
 import 'package:evently_app/feature/auth/login/widget/google_login_button.dart';
 import 'package:evently_app/feature/home/home_screen.dart';
+import 'package:evently_app/firebase_utils.dart';
+import 'package:evently_app/model/my_user.dart';
+import 'package:evently_app/providers/user_provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class LoginScreen extends StatefulWidget {
   static const String routeName = 'login_screen';
@@ -59,7 +63,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   SizedBox(height: size.height * 0.02),
                   CustomTextFormField(
-                    keyBoardInputType: TextInputType.phone,
+                    keyBoardInputType: TextInputType.text,
                     obscureText: true,
                     prefixIcon: Image.asset(AssetsManager.iconPassword),
                     suffixIcon: Image.asset(AssetsManager.iconShowPassword),
@@ -163,6 +167,15 @@ class _LoginScreenState extends State<LoginScreen> {
               email: emailController.text,
               password: passwordController.text,
             );
+        MyUser? user = await FirebaseUtils.readUserFromFireStore(
+          credential.user?.uid ?? '',
+        );
+        if (user == null) {
+          return;
+        }
+        var userProvider = Provider.of<UserProvider>(context, listen: false);
+        userProvider.updatUser(user);
+
         DialogUtils.hideLoading(context);
         DialogUtils.showMessage(
           context: context,
@@ -170,7 +183,7 @@ class _LoginScreenState extends State<LoginScreen> {
           title: 'Success',
           posActionName: 'Ok',
           posAction: () {
-            Navigator.of(context).pushNamed(HomeScreen.routeName);
+            Navigator.of(context).pushReplacementNamed(HomeScreen.routeName);
           },
         );
       } on FirebaseAuthException catch (e) {
