@@ -1,13 +1,16 @@
+
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:evently_app/core/theming/assets_manager.dart';
 import 'package:evently_app/core/theming/colors_manager.dart';
 import 'package:evently_app/core/theming/text_styles.dart';
-import 'package:evently_app/feature/home/home_screen.dart';
+import 'package:evently_app/feature/auth/login/login_screen.dart';
 import 'package:evently_app/providers/language_provider.dart';
 import 'package:evently_app/providers/theme_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:toggle_switch/toggle_switch.dart';
+import 'package:shared_preferences/shared_preferences.dart';  
 
 class StartScreen extends StatefulWidget {
   static const String routeName = '/start_screen';
@@ -18,6 +21,11 @@ class StartScreen extends StatefulWidget {
 }
 
 class _StartScreenState extends State<StartScreen> {
+    
+  static const _kOnboardingDone = 'onboarding_done';
+  static const _kLang = 'app_lang';   // 'ar' | 'en'
+  static const _kTheme = 'app_theme'; // 'light' | 'dark'
+
   late int selectedLanguageIndex;
   late int selectedThemeIndex;
   bool _initialized = false;
@@ -34,6 +42,23 @@ class _StartScreenState extends State<StartScreen> {
 
       _initialized = true;
     }
+  }
+
+  Future<void> _completeOnboarding() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    final lang = selectedLanguageIndex == 0 ? 'ar' : 'en';
+    final theme = selectedThemeIndex == 0 ? 'light' : 'dark';
+
+    await prefs.setString(_kLang, lang);
+    await prefs.setString(_kTheme, theme);
+    await prefs.setBool(_kOnboardingDone, true);
+
+    if (!mounted) return;
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (_) => const LoginScreen()),
+    );
   }
 
   @override
@@ -66,14 +91,10 @@ class _StartScreenState extends State<StartScreen> {
               ),
               SizedBox(height: height * 0.03),
               Text(
-                tr(
-                  'choose_your_preferred_theme_and_language_to_get_started_with_a_comfortable,_tailored_experience_that_suits_your_style',
-                ),
+                tr('choose_your_preferred_theme_and_language_to_get_started_with_a_comfortable,_tailored_experience_that_suits_your_style'),
                 style: themeProvider.currentTheme == ThemeMode.light
                     ? Theme.of(context).textTheme.bodyLarge
-                    : Theme.of(
-                        context,
-                      ).textTheme.bodyLarge?.copyWith(color: Colors.white),
+                    : Theme.of(context).textTheme.bodyLarge?.copyWith(color: Colors.white),
                 maxLines: 3,
               ),
               SizedBox(height: height * 0.05),
@@ -98,7 +119,7 @@ class _StartScreenState extends State<StartScreen> {
                     onToggle: (index) {
                       if (index == null) return;
                       setState(() => selectedLanguageIndex = index);
-                      final locale = index == 0 ? Locale('ar') : Locale('en');
+                      final locale = index == 0 ? const Locale('ar') : const Locale('en');
                       context.setLocale(locale);
                       languageProvider.setLanguage(locale.languageCode);
                     },
@@ -127,21 +148,14 @@ class _StartScreenState extends State<StartScreen> {
                     onToggle: (index) {
                       if (index == null) return;
                       setState(() => selectedThemeIndex = index);
-                      themeProvider.changeTheme(
-                        index == 0 ? ThemeMode.light : ThemeMode.dark,
-                      );
+                      themeProvider.changeTheme(index == 0 ? ThemeMode.light : ThemeMode.dark);
                     },
                   ),
                 ],
               ),
               SizedBox(height: height * 0.03),
               ElevatedButton(
-                onPressed: () {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (context) => HomeScreen()),
-                  );
-                },
+                onPressed: _completeOnboarding, 
                 style: ElevatedButton.styleFrom(
                   minimumSize: Size(width * 0.9, height * 0.06),
                   backgroundColor: ColorsManager.primaryLight,

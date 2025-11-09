@@ -1,3 +1,4 @@
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:evently_app/evently_app.dart';
 import 'package:evently_app/firebase_options.dart';
@@ -13,20 +14,20 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await EasyLocalization.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  // await FirebaseFirestore.instance.disableNetwork();
+
   runApp(
     EasyLocalization(
-      supportedLocales: [Locale('en'), Locale('ar')],
+      supportedLocales: const [Locale('en'), Locale('ar')],
       path: 'assets/translations',
-      fallbackLocale: Locale('en'),
+      fallbackLocale: const Locale('en'),
       child: MultiProvider(
         providers: [
-          ChangeNotifierProvider(create: (context) => ThemeProvider()),
-          ChangeNotifierProvider(create: (context) => LanguageProvider()),
-          ChangeNotifierProvider(create: (context) => EventListProvider()),
-          ChangeNotifierProvider(create: (context) => UserProvider()),
+          ChangeNotifierProvider(create: (_) => ThemeProvider()),
+          ChangeNotifierProvider(create: (_) => LanguageProvider()),
+          ChangeNotifierProvider(create: (_) => EventListProvider()),
+          ChangeNotifierProvider(create: (_) => UserProvider()),
         ],
-        child: EventlyApp(),
+        child: const EventlyApp(),
       ),
     ),
   );
