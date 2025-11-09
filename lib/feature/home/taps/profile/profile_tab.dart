@@ -9,7 +9,6 @@ import 'package:evently_app/feature/home/taps/profile/theme_bottom_sheet%20copy.
 import 'package:evently_app/providers/language_provider.dart';
 import 'package:evently_app/providers/theme_provider.dart';
 import 'package:evently_app/providers/user_provider.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
