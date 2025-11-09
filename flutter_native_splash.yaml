@@ -1,0 +1,18 @@
+flutter_native_splash:
+  color: "#101127"  
+ 
+  image: assets/images/evently_logo.png
+
+  #! ANDROID 12+ configuration:
+  android_12:
+    # background color
+    color: "#101127"
+    # color_dark: "#042a49"
+
+   
+    image: assets/images/evently_logo.png    
+    
+
+    # center-logo background color
+    icon_background_color: "#101127"
+    
