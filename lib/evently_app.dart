@@ -1,4 +1,3 @@
-
 import 'package:easy_localization/easy_localization.dart';
 import 'package:evently_app/core/theming/app_theme.dart';
 import 'package:evently_app/feature/auth/login/login_screen.dart';
@@ -8,9 +7,12 @@ import 'package:evently_app/feature/home/taps/create_event/create_event.dart';
 import 'package:evently_app/feature/lets_start/start_screen.dart';
 import 'package:evently_app/providers/language_provider.dart';
 import 'package:evently_app/providers/theme_provider.dart';
+import 'package:evently_app/firebase_utils.dart';
+import 'package:evently_app/providers/user_provider.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart'; 
+import 'package:shared_preferences/shared_preferences.dart';
 
 class EventlyApp extends StatelessWidget {
   const EventlyApp({super.key});
@@ -35,7 +37,7 @@ class EventlyApp extends StatelessWidget {
         LoginScreen.routeName: (_) => const LoginScreen(),
         SignupScreen.routeName: (_) => const SignupScreen(),
       },
-      
+
       home: const StartDecider(),
     );
   }
@@ -49,8 +51,6 @@ class StartDecider extends StatefulWidget {
 }
 
 class _StartDeciderState extends State<StartDecider> {
-  bool? _seen;
-
   @override
   void initState() {
     super.initState();
@@ -61,31 +61,31 @@ class _StartDeciderState extends State<StartDecider> {
     final prefs = await SharedPreferences.getInstance();
     final seen = prefs.getBool('onboarding_done') ?? false;
 
-    
-    final lang = prefs.getString('app_lang');
-    final theme = prefs.getString('app_theme');
-
-    if (lang != null) {
-      context.setLocale(Locale(lang));
-      context.read<LanguageProvider>().setLanguage(lang);
-    }
-    if (theme != null) {
-      context.read<ThemeProvider>().changeTheme(
-        theme == 'dark' ? ThemeMode.dark : ThemeMode.light,
-      );
+    if (!seen) {
+      if (!mounted) return;
+      Navigator.pushReplacementNamed(context, StartScreen.routeName);
+      return;
     }
 
+    var user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      // User is logged in, fetch details
+      var myUser = await FirebaseUtils.readUserFromFireStore(user.uid);
+      if (myUser != null) {
+        if (!mounted) return;
+        Provider.of<UserProvider>(context, listen: false).updatUser(myUser);
+        Navigator.pushReplacementNamed(context, HomeScreen.routeName);
+        return;
+      }
+    }
+
+    // Not logged in or user fetch failed
     if (!mounted) return;
-    setState(() => _seen = seen);
+    Navigator.pushReplacementNamed(context, LoginScreen.routeName);
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_seen == null) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
-    }
-    return _seen! ? const LoginScreen() : const StartScreen();
+    return const Scaffold(body: Center(child: CircularProgressIndicator()));
   }
 }

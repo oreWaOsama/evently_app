@@ -1,4 +1,3 @@
-
 import 'package:easy_localization/easy_localization.dart';
 import 'package:evently_app/evently_app.dart';
 import 'package:evently_app/firebase_options.dart';
@@ -9,11 +8,13 @@ import 'package:evently_app/providers/user_provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await EasyLocalization.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  final prefs = await SharedPreferences.getInstance();
 
   runApp(
     EasyLocalization(
@@ -22,8 +23,8 @@ void main() async {
       fallbackLocale: const Locale('en'),
       child: MultiProvider(
         providers: [
-          ChangeNotifierProvider(create: (_) => ThemeProvider()),
-          ChangeNotifierProvider(create: (_) => LanguageProvider()),
+          ChangeNotifierProvider(create: (_) => ThemeProvider(prefs)),
+          ChangeNotifierProvider(create: (_) => LanguageProvider(prefs)),
           ChangeNotifierProvider(create: (_) => EventListProvider()),
           ChangeNotifierProvider(create: (_) => UserProvider()),
         ],
